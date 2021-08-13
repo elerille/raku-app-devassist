@@ -1,0 +1,31 @@
+{
+  "auth": "github:elerille",
+  "authors": [
+    "Élerille <elerille+debian@thran.io>"
+  ],
+  "build-depends": [],
+  "depends": [
+    "License::SPDX",
+    "META6",
+    "META6::Depends",
+    "apt-file:from<bin>"
+  ],
+  "description": "Assistant for raku developer",
+  "license": "GPL-3.0-or-later",
+  "name": "App::DevAssist",
+  "provides": {
+    "App::DevAssist": "lib/App/DevAssist.pm6",
+    "DevAssist::Skeleton": "lib/DevAssist/Skeleton.pm6",
+    "DevAssist::Skeleton::Debian": "lib/DevAssist/Skeleton/Debian.pm6",
+    "DevAssist::Skeleton::Raku": "lib/DevAssist/Skeleton/Raku.pm6"
+  },
+  "raku": "6.*",
+  "resources": [],
+  "source-url": "https://github.com/elerille/raku-app-devassist.git",
+  "support": {
+    "source": "https://github.com/elerille/raku-app-devassist.git"
+  },
+  "tags": [],
+  "test-depends": [],
+  "version": "0.0.1"
+}

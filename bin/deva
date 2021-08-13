@@ -1,0 +1,56 @@
+#!/usr/bin/raku
+
+use App::DevAssist;
+
+my %*SUB-MAIN-OPTS = :named-anywhere,
+                     :bundling,
+                     ;
+
+
+multi MAIN('new',
+         Str:D $name,
+         IO:D() $directory = $name,
+         :@bin,
+         *%kvargs
+         )
+{
+    my App::DevAssist $app .= new;
+    exit not $app.cmd-new: $name, $directory, |%kvargs, :@bin;
+}
+multi MAIN('new-debian',
+         Str:D $name,
+         IO:D() $directory = $name,
+         *%kvargs
+         )
+{
+    my App::DevAssist $app .= new;
+    exit not $app.cmd-new-debian: $name, $directory, |%kvargs;
+}
+multi MAIN('build',
+         :$dist,
+         :$cache-dir = "$*HOME/.cache/app-devassist/",
+         Bool:D :$update = False,
+         *%kvargs
+         )
+{
+    $cache-dir.mkdir;
+    $dist //= 'sid';
+    my IO:D $base-file = "/var/cache/pbuilder/base-$dist.tgz".IO;
+    unless $base-file.e {
+        note "CREATE PBUILDER WITH ", $dist;
+        run <sudo pbuilder create --basetgz>, $base-file,
+                '--distribution', $dist,
+                '--othermirror', 'deb http://127.0.0.1/raku sid main',
+                '--keyring', '/usr/share/keyrings/raku-archive-keyring.gpg';
+        $cache-dir.add("install-dh.sh").spurt: "#!/bin/sh\napt install -y debhelper dh-perl6 perl6-tap-harness";
+        run <sudo pbuilder execute --save-after-exec --basetgz>, $base-file, '--distribution', $dist, '--',
+                $cache-dir.add("install-dh.sh");
+    }
+    if $base-file.modified < now - 60 * 60 || $update {
+        note "UPDATE PBUILDER WITH ", $dist;
+        run <sudo pbuilder update --basetgz>, $base-file, '--distribution', $dist;
+    }
+    note "BUILD PBUILDER WITH ", $dist;
+    run <echo pdebuild --use-pdebuild-internal -- --basetgz>, $base-file, '--distribution', $dist;
+    run <pdebuild --use-pdebuild-internal -- --basetgz>, $base-file, '--distribution', $dist;
+}
